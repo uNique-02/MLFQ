@@ -12,11 +12,11 @@ public class Main {
 
         for(int i=0; i<3; i++){
             queues.add(new Queues());
-            queues.get(i).priority = i+1;
-            queues.get(i).allotedTime = (int) Math.pow(2, i+1);
-            queues.get(i).scheduler = Scheduler.FCFS;
+            queues.get(i).setPriority(i+1);
+            queues.get(i).setAllotedTime((int) Math.pow(2, i+2));
+            queues.get(i).setScheduler(Scheduler.FCFS);
         }
-
+        
         new MLFQ(processes, queues);
     }
 }
