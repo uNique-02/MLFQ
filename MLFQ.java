@@ -53,7 +53,7 @@ public class MLFQ {
                         currentProcess.setTurnAroundTime(currentProcess.getCompletionTime() - currentProcess.getArrivalTime());
                         currentProcess.setWaitingTime(currentProcess.getTurnAroundTime() - currentProcess.getBurstTime());
                         System.out.println("Process " + currentProcess.getId() + " completed at time " + currentProcess.getCompletionTime());
-g                    } else {
+                    } else {
                         // If the process hasn't finished, move it to the next lower-priority queue
                         int nextQueueIndex = Math.min(queue.getPriority(), queues.size() - 1);
                         queues.get(nextQueueIndex).addProcess(currentProcess);
