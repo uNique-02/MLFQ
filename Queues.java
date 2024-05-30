@@ -13,6 +13,10 @@ public class Queues {
         processes.add(process);
     }
 
+    public void removeProcess(Process process){
+        processes.remove(process);
+    }
+
     public int getAllotedTime() {
         return allotedTime;
     }

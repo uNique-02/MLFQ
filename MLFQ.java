@@ -1,5 +1,6 @@
 import java.util.List;
 import java.util.Queue;
+import java.util.LinkedList;
 
 public class MLFQ {
     private List<Process> processes;
@@ -8,8 +9,8 @@ public class MLFQ {
     public MLFQ(List<Process> processes, List<Queues> queues) {
         this.processes = processes;
         this.queues = queues;
-        for(int i=0; i<processes.size(); i++){
-            queues.get(0).addProcess(processes.get(i));
+        for (Process process : processes) {
+            queues.get(0).addProcess(process);
         }
         schedule();
     }
@@ -23,8 +24,11 @@ public class MLFQ {
             for (Queues queue : queues) {
                 System.out.println("Checking Queue with Priority: " + queue.getPriority());
                 
-                while (!queue.processes.isEmpty()) {
-                    Process currentProcess = queue.processes.poll();
+                Queue<Process> currentQueueProcesses = new LinkedList<>(queue.processes);
+
+                while (!currentQueueProcesses.isEmpty()) {
+                    Process currentProcess = currentQueueProcesses.poll();
+                    queue.removeProcess(currentProcess); // Remove from the current queue
                     System.out.println("Processing: " + currentProcess.getId() + " from Queue: " + queue.getPriority());
 
                     int timeSlice = Math.min(queue.getAllotedTime(), currentProcess.getRemainingTime());
@@ -42,7 +46,9 @@ public class MLFQ {
                                 System.out.println("Process " + process.getId() + " arrived and added to Queue 1");
                             }
                         }
-                        if(i==timeSlice){
+
+                        // Exit loop early if process is complete
+                        if (currentProcess.getRemainingTime() == 0) {
                             break;
                         }
                     }
@@ -52,12 +58,18 @@ public class MLFQ {
                         currentProcess.setCompletionTime(currentTime);
                         currentProcess.setTurnAroundTime(currentProcess.getCompletionTime() - currentProcess.getArrivalTime());
                         currentProcess.setWaitingTime(currentProcess.getTurnAroundTime() - currentProcess.getBurstTime());
+                        queue.removeProcess(currentProcess);
                         System.out.println("Process " + currentProcess.getId() + " completed at time " + currentProcess.getCompletionTime());
                     } else {
                         // If the process hasn't finished, move it to the next lower-priority queue
-                        int nextQueueIndex = Math.min(queue.getPriority(), queues.size() - 1);
-                        queues.get(nextQueueIndex).addProcess(currentProcess);
-                        System.out.println("Process " + currentProcess.getId() + " moved to Queue " + (nextQueueIndex + 1));
+                        int nextQueueIndex = queue.getPriority();
+                        if (nextQueueIndex + 1 < queues.size()) {
+                            queues.get(nextQueueIndex + 1).addProcess(currentProcess);
+                            System.out.println("Process " + currentProcess.getId() + " moved to Queue " + (nextQueueIndex + 1));
+                        } else {
+                            queue.addProcess(currentProcess);
+                            System.out.println("Process " + currentProcess.getId() + " re-queued in the same Queue " + queue.getPriority());
+                        }
                     }
                 }
             }
