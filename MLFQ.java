@@ -1,12 +1,24 @@
 import java.util.List;
 import java.util.Queue;
+import java.util.Random;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+
+import javax.swing.BorderFactory;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+
 import java.util.LinkedList;
 
 public class MLFQ {
     private List<Process> processes;
     private List<Queues> queues;
 
-    public MLFQ(List<Process> processes, List<Queues> queues) {
+    JPanel boxPanel;
+
+    public MLFQ(List<Process> processes, List<Queues> queues, JPanel boxPanel) {
+        this.boxPanel = boxPanel;
         this.processes = processes;
         this.queues = queues;
         for (Process process : processes) {
@@ -38,6 +50,27 @@ public class MLFQ {
                         currentProcess.decrementRemainingTime();
                         currentTime++;
                         System.out.println("Current Time: " + currentTime + " | Remaining Time for Process " + currentProcess.getId() + ": " + currentProcess.getRemainingTime());
+
+                        Random random = new Random();
+                        Color color = color = new Color(random.nextInt(256), random.nextInt(256), random.nextInt(256));
+
+                        // Add a 1-second delay
+                        try {
+                            Thread.sleep(1000);
+                        } catch (InterruptedException e) {
+                            Thread.currentThread().interrupt();
+                            System.out.println("Thread was interrupted, failed to complete operation");
+                        }
+
+                        JPanel box = new JPanel();
+                        JLabel label = new JLabel("" + (currentProcess.getId()));
+                        box.setLayout(new BorderLayout());
+                        box.add(label, BorderLayout.CENTER);
+                        box.setPreferredSize(new Dimension(12, 30));
+                        box.setBorder(BorderFactory.createLineBorder(color));
+                        box.setBackground(color);
+                        boxPanel.add(box); // Add the box to the panel
+                        boxPanel.revalidate(); // Revalidate the panel to reflect the changes
 
                         // Check if any new processes have arrived and need to be added to the first queue
                         for (Process process : processes) {
