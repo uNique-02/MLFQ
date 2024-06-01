@@ -39,7 +39,14 @@ public class MLFQ {
                 
                 Queue<Process> currentQueueProcesses = new LinkedList<>(queue.processes);
 
-                FCFS(queue, currentQueueProcesses);
+                if(queue.getScheduler() == Scheduler.FCFS){
+                    System.out.println("Scheduler should be FSCS, which is actually: " +queue.getScheduler() + " ");
+                    FCFS(queue, currentQueueProcesses);
+                }else if(queue.getScheduler() == Scheduler.SRTF){
+                    System.out.println("Scheduler should be SRTF, which is actually: " +queue.getScheduler() + " ");
+                    SRTF(queue, currentQueueProcesses);
+                }
+                
             }
         }
 
