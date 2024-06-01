@@ -9,6 +9,8 @@ import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.LinkedList;
 
 public class MLFQ {
@@ -49,7 +51,7 @@ public class MLFQ {
                         SRTF(queue, currentQueueProcesses);
                         break;
                     case Scheduler.SJF:
-                        System.out.println("Scheduler should be SRTF, which is actually: " +queue.getScheduler() + " ");
+                        System.out.println("Scheduler should be SJF, which is actually: " +queue.getScheduler() + " ");
                         SJF(queue, currentQueueProcesses);
                         break;
                     case Scheduler.PPRIORITY:
@@ -230,6 +232,75 @@ public class MLFQ {
         }
     }
 
-    public void SJF(Queues queue, Queue<Process> currentQueueProcesses){}
+    public void SJF(Queues queue, Queue<Process> currentQueueProcesses) {
+        while (!currentQueueProcesses.isEmpty()) {
+            // Find the process with the shortest remaining time
+            Process shortestJob = null;
+            for (Process process : currentQueueProcesses) {
+                if (shortestJob == null || process.getRemainingTime() < shortestJob.getRemainingTime()) {
+                    shortestJob = process;
+                }
+            }
+    
+            // Poll the selected process (shortestJob) from the queue
+            if (shortestJob != null) {
+                currentQueueProcesses.remove(shortestJob);
+            }
+            queue.removeProcess(shortestJob);
+            System.out.println("Processing: " + shortestJob.getId() + " from Queue: " + queue.getPriority());
+    
+            int timeSlice = Math.min(queue.getAllotedTime(), shortestJob.getRemainingTime());
+            System.out.println("Time Slice for Process " + shortestJob.getId() + ": " + timeSlice);
+    
+            for (int i = 0; i < timeSlice; i++) {
+                shortestJob.decrementRemainingTime();
+                currentTime++;
+                System.out.println("Current Time: " + currentTime + " | Remaining Time for Process " + shortestJob.getId() + ": " + shortestJob.getRemainingTime());
+    
+                // Add a 1-second delay
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    System.out.println("Thread was interrupted, failed to complete operation");
+                }
+    
+                drawBox(shortestJob.getId());
+    
+                // Check if any new processes have arrived and need to be added to the first queue
+                for (Process process : processes) {
+                    if (process.getArrivalTime() == currentTime) {
+                        queues.get(0).addProcess(process);
+                        System.out.println("Process " + process.getId() + " arrived and added to Queue 1");
+                    }
+                }
+    
+                // Exit loop early if process is complete
+                if (shortestJob.getRemainingTime() == 0) {
+                    break;
+                }
+            }
+    
+            // If the process has finished, set its completion, turnaround, and waiting times
+            if (shortestJob.getRemainingTime() == 0) {
+                shortestJob.setCompletionTime(currentTime);
+                shortestJob.setTurnAroundTime(shortestJob.getCompletionTime() - shortestJob.getArrivalTime());
+                shortestJob.setWaitingTime(shortestJob.getTurnAroundTime() - shortestJob.getBurstTime());
+                queue.removeProcess(shortestJob);
+                System.out.println("Process " + shortestJob.getId() + " completed at time " + shortestJob.getCompletionTime());
+            } else {
+                // If the process hasn't finished, move it to the next lower-priority queue
+                int nextQueueIndex = queue.getPriority();
+                if (nextQueueIndex + 1 < queues.size()) {
+                    queues.get(nextQueueIndex + 1).addProcess(shortestJob);
+                    System.out.println("Process " + shortestJob.getId() + " moved to Queue " + (nextQueueIndex + 1));
+                } else {
+                    queue.addProcess(shortestJob);
+                    System.out.println("Process " + shortestJob.getId() + " re-queued in the same Queue " + queue.getPriority());
+                }
+            }
+        }
+    }
+    
     public void PPRIORITY(Queues queue, Queue<Process> currentQueueProcesses){}
 }
