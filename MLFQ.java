@@ -39,12 +39,25 @@ public class MLFQ {
                 
                 Queue<Process> currentQueueProcesses = new LinkedList<>(queue.processes);
 
-                if(queue.getScheduler() == Scheduler.FCFS){
-                    System.out.println("Scheduler should be FSCS, which is actually: " +queue.getScheduler() + " ");
-                    FCFS(queue, currentQueueProcesses);
-                }else if(queue.getScheduler() == Scheduler.SRTF){
-                    System.out.println("Scheduler should be SRTF, which is actually: " +queue.getScheduler() + " ");
-                    SRTF(queue, currentQueueProcesses);
+                switch (queue.getScheduler()) {
+                    case Scheduler.FCFS:
+                        System.out.println("Scheduler should be FSCS, which is actually: " +queue.getScheduler() + " ");
+                        FCFS(queue, currentQueueProcesses);
+                        break;
+                    case Scheduler.SRTF:
+                        System.out.println("Scheduler should be SRTF, which is actually: " +queue.getScheduler() + " ");
+                        SRTF(queue, currentQueueProcesses);
+                        break;
+                    case Scheduler.SJF:
+                        System.out.println("Scheduler should be SRTF, which is actually: " +queue.getScheduler() + " ");
+                        SJF(queue, currentQueueProcesses);
+                        break;
+                    case Scheduler.PPRIORITY:
+                        System.out.println("Scheduler should be SRTF, which is actually: " +queue.getScheduler() + " ");
+                        PPRIORITY(queue, currentQueueProcesses);
+                        break;
+                    default:
+                        break;
                 }
                 
             }
@@ -216,5 +229,7 @@ public class MLFQ {
             }
         }
     }
-    
+
+    public void SJF(Queues queue, Queue<Process> currentQueueProcesses){}
+    public void PPRIORITY(Queues queue, Queue<Process> currentQueueProcesses){}
 }

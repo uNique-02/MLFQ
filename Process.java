@@ -8,6 +8,10 @@ public class Process {
     private int completionTime;
     private int turnAroundTime;
     private int waitingTime;
+
+    Process(){
+        
+    }
     
     public int getTurnAroundTime() {
         return turnAroundTime;
