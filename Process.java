@@ -8,6 +8,19 @@ public class Process {
     private int completionTime;
     private int turnAroundTime;
     private int waitingTime;
+    private int executionCount = 0; //Execution count of process in a queue before preemption
+
+    public int getExecutionCount() {
+        return executionCount;
+    }
+
+    public void incrementExecutionCount() {
+        executionCount++;
+    }
+
+    public void decrementExecutionCount() {
+        executionCount--;
+    }
 
     Process(){
         

@@ -25,15 +25,43 @@ public class MLFQ {
         this.boxPanel = boxPanel;
         this.processes = processes;
         this.queues = queues;
-        for (Process process : processes) {
-            queues.get(0).addProcess(process);
-        }
+     //   for (Process process : processes) {
+     //       queues.get(0).addProcess(process);
+     //   }
         schedule();
     }
 
     public void schedule() {
         currentTime = 0;
         System.out.println("Starting MLFQ Scheduling...");
+
+        if (queues.get(0).processes.isEmpty() && queues.get(0).getScheduler() != Scheduler.SJF) {
+            // Wait until a process arrives
+            while (queues.get(0).processes.isEmpty()) {
+                
+                // Check for newly arrived processes and add them to the queue
+                for (Process process : processes) {
+                    if (process.getArrivalTime() == currentTime) {
+                        queues.get(0).addProcess(process);
+                        System.out.println("Process " + process.getId() + " arrived and added to Queue 1");
+                  }
+                }
+                currentTime++;
+
+                // Add a 1-second delay to simulate real-time waiting
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    System.out.println("Thread was interrupted, failed to complete operation");
+                }
+            }
+            currentTime=0;
+        }else{
+            for (Process process : processes) {
+                queues.get(0).addProcess(process);
+            }
+        }
         
         while (!allQueuesEmpty()) {
             for (Queues queue : queues) {
@@ -129,6 +157,7 @@ public class MLFQ {
                 for (Process process : processes) {
                     if (process.getArrivalTime() == currentTime) {
                         queues.get(0).addProcess(process);
+                        currentQueueProcesses.add(process);
                         System.out.println("Process " + process.getId() + " arrived and added to Queue 1");
                     }
                 }
@@ -145,9 +174,11 @@ public class MLFQ {
                 currentProcess.setTurnAroundTime(currentProcess.getCompletionTime() - currentProcess.getArrivalTime());
                 currentProcess.setWaitingTime(currentProcess.getTurnAroundTime() - currentProcess.getBurstTime());
                 queue.removeProcess(currentProcess);
+                currentQueueProcesses.remove(currentProcess);
                 System.out.println("Process " + currentProcess.getId() + " completed at time " + currentProcess.getCompletionTime());
             } else {
                 // If the process hasn't finished, move it to the next lower-priority queue
+                currentQueueProcesses.remove(currentProcess); // Remove from the current queue
                 int nextQueueIndex = queue.getPriority();
                 if (nextQueueIndex + 1 < queues.size()) {
                     queues.get(nextQueueIndex + 1).addProcess(currentProcess);
@@ -168,6 +199,7 @@ public class MLFQ {
             for (Process process : currentQueueProcesses) {
                 if (shortestProcess == null || process.getRemainingTime() < shortestProcess.getRemainingTime()) {
                     shortestProcess = process;
+                    System.out.println("Shortest Process: " + shortestProcess.getId());
                 }
             }
     
@@ -178,12 +210,19 @@ public class MLFQ {
             currentQueueProcesses.remove(shortestProcess);
             queue.removeProcess(shortestProcess); // Remove from the current queue
             System.out.println("Processing: " + shortestProcess.getId() + " from Queue: " + queue.getPriority());
+            
+            int timeslice=0;
+            if(shortestProcess.getExecutionCount()>0) {
+                timeslice = queue.getAllotedTime();
+            }else{
+                timeslice = Math.min(queue.getAllotedTime(), shortestProcess.getRemainingTime());
+            }
+            System.out.println("Time Slice for Process " + shortestProcess.getId() + ": " + timeslice);
     
-            int timeSlice = Math.min(queue.getAllotedTime(), shortestProcess.getRemainingTime());
-            System.out.println("Time Slice for Process " + shortestProcess.getId() + ": " + timeSlice);
-    
-            for (int i = 0; i < timeSlice; i++) {
+            for (int i = 0; shortestProcess.getExecutionCount() < timeslice; i++) {
                 shortestProcess.decrementRemainingTime();
+                shortestProcess.incrementExecutionCount();
+                System.out.println("Execution count before preemption: " + shortestProcess.getExecutionCount());
                 currentTime++;
                 System.out.println("Current Time: " + currentTime + " | Remaining Time for Process " + shortestProcess.getId() + ": " + shortestProcess.getRemainingTime());
     
@@ -201,6 +240,14 @@ public class MLFQ {
                 for (Process process : processes) {
                     if (process.getArrivalTime() == currentTime) {
                         queues.get(0).addProcess(process);
+                        currentQueueProcesses.add(process);
+                        if(shortestProcess.getRemainingTime() > process.getRemainingTime()){
+                            if(shortestProcess.getExecutionCount()<timeslice){
+                                currentQueueProcesses.add(shortestProcess);
+                                queue.addProcess(shortestProcess);
+                            }
+                            shortestProcess = process;
+                        }
                         System.out.println("Process " + process.getId() + " arrived and added to Queue 1");
                     }
                 }
@@ -217,10 +264,13 @@ public class MLFQ {
                 shortestProcess.setTurnAroundTime(shortestProcess.getCompletionTime() - shortestProcess.getArrivalTime());
                 shortestProcess.setWaitingTime(shortestProcess.getTurnAroundTime() - shortestProcess.getBurstTime());
                 queue.removeProcess(shortestProcess);
+                currentQueueProcesses.remove(shortestProcess);
                 System.out.println("Process " + shortestProcess.getId() + " completed at time " + shortestProcess.getCompletionTime());
             } else {
                 // If the process hasn't finished, move it to the next lower-priority queue
-                int nextQueueIndex = queue.getPriority();
+                    queue.removeProcess(shortestProcess);
+                    currentQueueProcesses.remove(shortestProcess);
+                    int nextQueueIndex = queue.getPriority();
                 if (nextQueueIndex + 1 < queues.size()) {
                     queues.get(nextQueueIndex + 1).addProcess(shortestProcess);
                     System.out.println("Process " + shortestProcess.getId() + " moved to Queue " + (nextQueueIndex + 1));
@@ -228,6 +278,7 @@ public class MLFQ {
                     queue.addProcess(shortestProcess);
                     System.out.println("Process " + shortestProcess.getId() + " re-queued in the same Queue " + queue.getPriority());
                 }
+                
             }
         }
     }
@@ -245,8 +296,9 @@ public class MLFQ {
             // Poll the selected process (shortestJob) from the queue
             if (shortestJob != null) {
                 currentQueueProcesses.remove(shortestJob);
+               // queue.removeProcess(shortestJob); // Remove from the queue
             }
-            queue.removeProcess(shortestJob);
+            //queue.removeProcess(shortestJob);
             System.out.println("Processing: " + shortestJob.getId() + " from Queue: " + queue.getPriority());
     
             int timeSlice = Math.min(queue.getAllotedTime(), shortestJob.getRemainingTime());
@@ -270,7 +322,7 @@ public class MLFQ {
                 // Check if any new processes have arrived and need to be added to the first queue
                 for (Process process : processes) {
                     if (process.getArrivalTime() == currentTime) {
-                        queues.get(0).addProcess(process);
+//                        queues.get(0).addProcess(process);
                         System.out.println("Process " + process.getId() + " arrived and added to Queue 1");
                     }
                 }
@@ -280,7 +332,6 @@ public class MLFQ {
                     break;
                 }
             }
-    
             // If the process has finished, set its completion, turnaround, and waiting times
             if (shortestJob.getRemainingTime() == 0) {
                 shortestJob.setCompletionTime(currentTime);
@@ -294,11 +345,16 @@ public class MLFQ {
                 if (nextQueueIndex + 1 < queues.size()) {
                     queues.get(nextQueueIndex + 1).addProcess(shortestJob);
                     System.out.println("Process " + shortestJob.getId() + " moved to Queue " + (nextQueueIndex + 1));
+                    queue.removeProcess(shortestJob);
+                    System.out.println("Process " + shortestJob.getId() + " removed from Queue " + (nextQueueIndex));
                 } else {
+                    queue.removeProcess(shortestJob);
+                    System.out.println("Process " + shortestJob.getId() + " removed from Queue " + (nextQueueIndex));
                     queue.addProcess(shortestJob);
                     System.out.println("Process " + shortestJob.getId() + " re-queued in the same Queue " + queue.getPriority());
                 }
             }
+        
         }
     }
     

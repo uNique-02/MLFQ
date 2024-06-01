@@ -29,7 +29,7 @@ public class Main {
         initComponents();
 
         List<Process> processes = Arrays.asList(
-                new Process(1, 0, 10, 1),
+                new Process(1, 0, 11, 1),
                 new Process(2, 2, 5, 1),
                 new Process(3, 4, 2, 1)
         );
@@ -42,7 +42,7 @@ public class Main {
             queues.get(i).setAllotedTime((int) Math.pow(2, i+2));
             queues.get(i).setScheduler(Scheduler.FCFS);
         }
-        queues.get(0).setScheduler(Scheduler.SJF);
+        queues.get(0).setScheduler(Scheduler.SRTF);
         
         new MLFQ(processes, queues, boxPanel);
     }
