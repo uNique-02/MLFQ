@@ -83,7 +83,11 @@ public class MLFQ {
                         SJF(queue, currentQueueProcesses);
                         break;
                     case Scheduler.PPRIORITY:
-                        System.out.println("Scheduler should be SRTF, which is actually: " +queue.getScheduler() + " ");
+                        System.out.println("Scheduler should be PPRIORITY,, which is actually: " +queue.getScheduler() + " ");
+                        PPRIORITY(queue, currentQueueProcesses);
+                        break;
+                    case Scheduler.NPPRIORITY:
+                        System.out.println("Scheduler should be NPPRIORITY,, which is actually: " +queue.getScheduler() + " ");
                         PPRIORITY(queue, currentQueueProcesses);
                         break;
                     default:
@@ -272,6 +276,7 @@ public class MLFQ {
                     currentQueueProcesses.remove(shortestProcess);
                     int nextQueueIndex = queue.getPriority();
                 if (nextQueueIndex + 1 < queues.size()) {
+                    shortestProcess.resetExecutionCount();
                     queues.get(nextQueueIndex + 1).addProcess(shortestProcess);
                     System.out.println("Process " + shortestProcess.getId() + " moved to Queue " + (nextQueueIndex + 1));
                 } else {
@@ -358,5 +363,97 @@ public class MLFQ {
         }
     }
     
-    public void PPRIORITY(Queues queue, Queue<Process> currentQueueProcesses){}
+    public void PPRIORITY(Queues queue, Queue<Process> currentQueueProcesses) {
+        while (!currentQueueProcesses.isEmpty()) {
+            // Find the process with the shortest remaining time
+            Process priorityProcess = null;
+            for (Process process : currentQueueProcesses) {
+                if (priorityProcess == null || process.getPriority() < priorityProcess.getPriority()) {
+                    priorityProcess = process;
+                    System.out.println("Shortest Process: " + priorityProcess.getId());
+                }
+            }
+    
+            if (priorityProcess == null) {
+                break;
+            }
+    
+            currentQueueProcesses.remove(priorityProcess);
+            queue.removeProcess(priorityProcess); // Remove from the current queue
+            System.out.println("Processing: " + priorityProcess.getId() + " from Queue: " + queue.getPriority());
+            
+            int timeslice=0;
+            if(priorityProcess.getExecutionCount()>0) {
+                timeslice = queue.getAllotedTime();
+            }else{
+                timeslice = Math.min(queue.getAllotedTime(), priorityProcess.getRemainingTime());
+            }
+            System.out.println("Time Slice for Process " + priorityProcess.getId() + ": " + timeslice);
+    
+            for (int i = 0; priorityProcess.getExecutionCount() < timeslice; i++) {
+                priorityProcess.decrementRemainingTime();
+                priorityProcess.incrementExecutionCount();
+                System.out.println("Execution count before preemption: " + priorityProcess.getExecutionCount());
+                currentTime++;
+                System.out.println("Current Time: " + currentTime + " | Remaining Time for Process " + priorityProcess.getId() + ": " + priorityProcess.getRemainingTime());
+    
+                // Add a 1-second delay
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    System.out.println("Thread was interrupted, failed to complete operation");
+                }
+    
+                drawBox(priorityProcess.getId());
+    
+                // Check if any new processes have arrived and need to be added to the first queue
+                for (Process process : processes) {
+                    if (process.getArrivalTime() == currentTime) {
+                        queues.get(0).addProcess(process);
+                        currentQueueProcesses.add(process);
+                        if(priorityProcess.getPriority() > process.getPriority()){
+                            if(priorityProcess.getExecutionCount()<timeslice){
+                                currentQueueProcesses.add(priorityProcess);
+                                queue.addProcess(priorityProcess);
+                            }
+                            priorityProcess = process;
+                        }
+                        System.out.println("Process " + process.getId() + " arrived and added to Queue 1");
+                    }
+                }
+    
+                // Exit loop early if process is complete
+                if (priorityProcess.getRemainingTime() == 0) {
+                    break;
+                }
+            }
+    
+            // If the process has finished, set its completion, turnaround, and waiting times
+            if (priorityProcess.getRemainingTime() == 0) {
+                priorityProcess.setCompletionTime(currentTime);
+                priorityProcess.setTurnAroundTime(priorityProcess.getCompletionTime() - priorityProcess.getArrivalTime());
+                priorityProcess.setWaitingTime(priorityProcess.getTurnAroundTime() - priorityProcess.getBurstTime());
+                queue.removeProcess(priorityProcess);
+                currentQueueProcesses.remove(priorityProcess);
+                System.out.println("Process " + priorityProcess.getId() + " completed at time " + priorityProcess.getCompletionTime());
+            } else {
+                // If the process hasn't finished, move it to the next lower-priority queue
+                    queue.removeProcess(priorityProcess);
+                    currentQueueProcesses.remove(priorityProcess);
+                    int nextQueueIndex = queue.getPriority();
+                if (nextQueueIndex + 1 < queues.size()) {
+                    priorityProcess.resetExecutionCount();
+                    queues.get(nextQueueIndex + 1).addProcess(priorityProcess);
+                    System.out.println("Process " + priorityProcess.getId() + " moved to Queue " + (nextQueueIndex + 1));
+                } else {
+                    queue.addProcess(priorityProcess);
+                    System.out.println("Process " + priorityProcess.getId() + " re-queued in the same Queue " + queue.getPriority());
+                }
+                
+            }
+        }
+    }
+
+
 }

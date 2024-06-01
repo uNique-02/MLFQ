@@ -18,6 +18,10 @@ public class Process {
         executionCount++;
     }
 
+    public void resetExecutionCount() {
+        executionCount = 0;
+    }
+
     public void decrementExecutionCount() {
         executionCount--;
     }
