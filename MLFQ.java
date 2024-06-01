@@ -138,4 +138,76 @@ public class MLFQ {
         }
     
     }
+
+    public void SRTF(Queues queue, Queue<Process> currentQueueProcesses) {
+        while (!currentQueueProcesses.isEmpty()) {
+            // Find the process with the shortest remaining time
+            Process shortestProcess = null;
+            for (Process process : currentQueueProcesses) {
+                if (shortestProcess == null || process.getRemainingTime() < shortestProcess.getRemainingTime()) {
+                    shortestProcess = process;
+                }
+            }
+    
+            if (shortestProcess == null) {
+                break;
+            }
+    
+            currentQueueProcesses.remove(shortestProcess);
+            queue.removeProcess(shortestProcess); // Remove from the current queue
+            System.out.println("Processing: " + shortestProcess.getId() + " from Queue: " + queue.getPriority());
+    
+            int timeSlice = Math.min(queue.getAllotedTime(), shortestProcess.getRemainingTime());
+            System.out.println("Time Slice for Process " + shortestProcess.getId() + ": " + timeSlice);
+    
+            for (int i = 0; i < timeSlice; i++) {
+                shortestProcess.decrementRemainingTime();
+                currentTime++;
+                System.out.println("Current Time: " + currentTime + " | Remaining Time for Process " + shortestProcess.getId() + ": " + shortestProcess.getRemainingTime());
+    
+                // Add a 1-second delay
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    System.out.println("Thread was interrupted, failed to complete operation");
+                }
+    
+                drawBox(shortestProcess.getId());
+    
+                // Check if any new processes have arrived and need to be added to the first queue
+                for (Process process : processes) {
+                    if (process.getArrivalTime() == currentTime) {
+                        queues.get(0).addProcess(process);
+                        System.out.println("Process " + process.getId() + " arrived and added to Queue 1");
+                    }
+                }
+    
+                // Exit loop early if process is complete
+                if (shortestProcess.getRemainingTime() == 0) {
+                    break;
+                }
+            }
+    
+            // If the process has finished, set its completion, turnaround, and waiting times
+            if (shortestProcess.getRemainingTime() == 0) {
+                shortestProcess.setCompletionTime(currentTime);
+                shortestProcess.setTurnAroundTime(shortestProcess.getCompletionTime() - shortestProcess.getArrivalTime());
+                shortestProcess.setWaitingTime(shortestProcess.getTurnAroundTime() - shortestProcess.getBurstTime());
+                queue.removeProcess(shortestProcess);
+                System.out.println("Process " + shortestProcess.getId() + " completed at time " + shortestProcess.getCompletionTime());
+            } else {
+                // If the process hasn't finished, move it to the next lower-priority queue
+                int nextQueueIndex = queue.getPriority();
+                if (nextQueueIndex + 1 < queues.size()) {
+                    queues.get(nextQueueIndex + 1).addProcess(shortestProcess);
+                    System.out.println("Process " + shortestProcess.getId() + " moved to Queue " + (nextQueueIndex + 1));
+                } else {
+                    queue.addProcess(shortestProcess);
+                    System.out.println("Process " + shortestProcess.getId() + " re-queued in the same Queue " + queue.getPriority());
+                }
+            }
+        }
+    }
+    
 }
