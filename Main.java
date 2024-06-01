@@ -8,6 +8,7 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.lang.reflect.Array;
 
 public class Main {
 
@@ -16,18 +17,22 @@ public class Main {
     static JPanel boxPanel;
 
     static Util util = new Util();
-    static Process processes[];
     static JSpinner spinnerBox[];
+    static JSpinner spinnerBoxLabel[];
     static JComboBox algoBox[];
     static int selectedOption;
     static ArrayList<JComboBox> comboBoxesList = new ArrayList<>(); // List to track JComboBoxes
     static ArrayList<JSpinner> spinnerBoxesList = new ArrayList<>(); // List to track JComboBoxes
     static Queues[] queue = new Queues[3];
 
+    static List<Process> processes;
+    static ArrayList<Queues> queues;
+
     public static void main(String[] args) {
 
         initComponents();
 
+        /* 
         List<Process> processes = Arrays.asList(
                 new Process(1, 0, 11, 3),
                 new Process(2, 2, 5, 1),
@@ -42,9 +47,11 @@ public class Main {
             queues.get(i).setAllotedTime((int) Math.pow(2, i+2));
             queues.get(i).setScheduler(Scheduler.FCFS);
         }
-        queues.get(0).setScheduler(Scheduler.NPPRIORITY);
+        queues.get(0).setScheduler(Scheduler.FCFS);
         
         new MLFQ(processes, queues, boxPanel);
+
+        */
     }
 
     public JComboBox createComboBox(String[] algos){
@@ -113,6 +120,8 @@ public class Main {
          numberofQueues.addActionListener(e -> {
             selectedOption = Integer.parseInt(numberofQueues.getSelectedItem().toString());
             System.out.println("Selected number of queues: " + selectedOption);
+            queues = new ArrayList<>(selectedOption);   /* ----------------- NOT PART OF UI -------------------------> */
+
 
             // Remove all comboBoxes from the panel and list
             for (JComboBox box : comboBoxesList) {
@@ -135,6 +144,12 @@ public class Main {
                 
                 //queue[i] = new Queues();
 
+                queues.add(new Queues());   /* ----------------- NOT PART OF UI -------------------------> */
+                queues.get(i).setPriority(i+1); /* ----------------- NOT PART OF UI -------------------------> */
+                queues.get(i).setAllotedTime((int) Math.pow(2, i+2));   /* ----------------- NOT PART OF UI -------------------------> */
+                queues.get(i).setScheduler(Scheduler.FCFS); /* ----------------- NOT PART OF UI -------------------------> */
+                    
+
                 gbc.insets = new Insets(5, 10, 5, 10); 
 
                 // Create a SpinnerModel to define the range and initial value
@@ -145,14 +160,19 @@ public class Main {
 
                 algoBox[i] = util.createBox();
                 spinnerBox[i] = new JSpinner(spinnerModel);
+                spinnerBox[i].setEnabled(false);
                 final int index = i;
-
-                queue[i] = new Queues();
 
                 algoBox[i].addActionListener(event -> {
                     JComboBox comboBox = (JComboBox) event.getSource();
                     Scheduler selectedAlgo = (Scheduler) comboBox.getSelectedItem();
-                    queue[index].setScheduler(selectedAlgo);
+                    if (selectedAlgo == Scheduler.ROUND_ROBIN) {
+                        spinnerBox[index].setEnabled(true);
+                    } else {
+                        spinnerBox[index].setEnabled(false);
+                    }
+                    queues.get(index).setScheduler(selectedAlgo); /* ----------------- NOT PART OF UI -------------------------> */
+                    
                 }); 
 
                 comboBoxesList.add(algoBox[i]);
@@ -239,17 +259,12 @@ public class Main {
                     return;
                 }
                 System.out.println("Selected " + algoBox[0].getSelectedIndex());
-
-                for(int i=0; i<processes.length; i++) {
-                    System.out.println(processes[i].getId());
-                    System.out.println(processes[i].getArrivalTime());
-                    System.out.println(processes[i].getBurstTime());
-                }
                 /* ========================================================================================== */
                 boxPanel.removeAll();
                 boxPanel.revalidate();
                 boxPanel.repaint();
 
+                new MLFQ(processes, queues, boxPanel);
         /* =========================================================================================== */
             }
         });

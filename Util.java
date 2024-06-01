@@ -5,6 +5,7 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.table.DefaultTableModel;
 
+import java.awt.List;
 import java.util.ArrayList;
 
 public class Util {
@@ -25,24 +26,27 @@ public class Util {
         dialog.setVisible(true);
     }
 
-    public Process[] createProcesses(DefaultTableModel model) {
+    public ArrayList<Process> createProcesses(DefaultTableModel model) {
         this.model = model;
         ArrayList<Process> processes = new ArrayList<>();
         for (int i = 0; i < model.getRowCount(); i++) {
             System.out.println("Row count: " + model.getRowCount());
-            int id = Integer.parseInt((String) model.getValueAt(i, 0)); // Assuming the first column is for ID
-            //int priority = Integer.parseInt((String) model.getValueAt(i, 1)); // Assuming the second column is for priority
-            int arrivalTime = Integer.parseInt((String) model.getValueAt(i, 1)); // Assuming the third column is for arrival time
-            int burstTime = Integer.parseInt((String) model.getValueAt(i, 2)); // Assuming the fourth column is for burst time
+            int id = Integer.parseInt((String) model.getValueAt(i, 0)); // First column is for ID
+            int arrivalTime = Integer.parseInt((String) model.getValueAt(i, 1)); // Second column is for arrival time
+            int burstTime = Integer.parseInt((String) model.getValueAt(i, 2)); // Third column is for burst time
+            int priority = Integer.parseInt((String) model.getValueAt(i, 3)); // Fourth column is for priority
 
             Process newProcess = new Process();
             newProcess.setId(id);
             newProcess.setBurstTime(burstTime);
             newProcess.setArrivalTime(arrivalTime);
+            newProcess.setPriority(priority);
+            newProcess.setRemainingTime(burstTime);
             processes.add(newProcess);
         }
-        return processes.toArray(new Process[0]); // Convert ArrayList to array
+        return processes;
     }
+
 
     public JComboBox createBox(){
         final String algos[] = {"First Come First Serve", "Shortest Job First", "Shortest Remaining Time First", "Round-Robin", "Priority Scheduler", ""};

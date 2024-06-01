@@ -25,6 +25,11 @@ public class MLFQ {
         this.boxPanel = boxPanel;
         this.processes = processes;
         this.queues = queues;
+
+        for(Process process: processes){
+            System.out.println("Process ID: " + process.getId() + " Arrival Time: " + process.getArrivalTime() + " Burst Time: " + process.getBurstTime() + " Priority: " + process.getPriority());
+        }
+
      //   for (Process process : processes) {
      //       queues.get(0).addProcess(process);
      //   }
@@ -100,10 +105,9 @@ public class MLFQ {
         printSchedule();
     }
 
-    public void drawBox(int id){
-
+    public void drawBox(int id) {
         Random random = new Random();
-        Color color = color = new Color(random.nextInt(256), random.nextInt(256), random.nextInt(256));
+        Color color = new Color(random.nextInt(256), random.nextInt(256), random.nextInt(256));
 
         JPanel box = new JPanel();
         JLabel label = new JLabel("" + (id));
@@ -113,7 +117,9 @@ public class MLFQ {
         box.setBorder(BorderFactory.createLineBorder(color));
         box.setBackground(color);
         boxPanel.add(box); // Add the box to the panel
-        boxPanel.revalidate(); // Revalidate the panel to reflect the changes
+
+        boxPanel.revalidate();
+        boxPanel.repaint();
     }
 
     private boolean allQueuesEmpty() {
