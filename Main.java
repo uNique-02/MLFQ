@@ -18,11 +18,12 @@ public class Main {
 
     static Util util = new Util();
     static JSpinner spinnerBox[];
-    static JSpinner spinnerBoxLabel[];
+    static JLabel spinnerBoxLabel[];
     static JComboBox algoBox[];
     static int selectedOption;
     static ArrayList<JComboBox> comboBoxesList = new ArrayList<>(); // List to track JComboBoxes
     static ArrayList<JSpinner> spinnerBoxesList = new ArrayList<>(); // List to track JComboBoxes
+    static ArrayList<JLabel> spinnerBoxesLabelList = new ArrayList<>(); // List to track JComboBoxes
 
     static List<Process> processes;
     static ArrayList<Queues> queues;
@@ -132,12 +133,18 @@ public class Main {
                 btnPanel.remove(spinner);
             }
 
+            for(JLabel label: spinnerBoxesLabelList){
+                btnPanel.remove(label);
+            }
+
             comboBoxesList.clear(); // Clear the list of comboBoxes
             spinnerBoxesList.clear(); // Clear the list of spinnerBoxes
+            spinnerBoxesLabelList.clear(); // Clear the list of spinnerBoxes
 
             // Add new comboBoxes based on the selected option
             algoBox = new JComboBox[selectedOption];
             spinnerBox = new JSpinner[selectedOption];
+            spinnerBoxLabel = new JLabel[selectedOption];
 
             for (int i = 0; i < selectedOption; i++) {
                 
@@ -193,11 +200,12 @@ public class Main {
                 gbc.gridwidth = 2;
                 btnPanel.add(spinnerBox[i], gbc);
 
-                JLabel label = new JLabel("Time Quantum");
+                spinnerBoxLabel[i] = new JLabel("Time Quantum");
+                spinnerBoxesLabelList.add(spinnerBoxLabel[i]);
                 gbc.gridx = 3;
                 gbc.gridwidth = 2;
                 gbc.insets = new Insets(5, 0, 5, 10); 
-                btnPanel.add(label, gbc);
+                btnPanel.add(spinnerBoxLabel[i], gbc);
             }
 
             // Revalidate and repaint the panel
@@ -261,7 +269,10 @@ public class Main {
                 boxPanel.revalidate();
                 boxPanel.repaint();
 
-                new MLFQ(processes, queues, boxPanel);
+                if(passedValidator()){
+                    new MLFQ(processes, queues, boxPanel);
+                }
+                
         /* =========================================================================================== */
             }
         });
@@ -288,5 +299,15 @@ public class Main {
         }
         // Add the new row to the table model
         model.addRow(rowData);
+    }
+
+    public static boolean passedValidator(){
+        for(JSpinner spinner: spinnerBox){
+            if(spinner.isEnabled() && (int) spinner.getValue() == 0){
+                JOptionPane.showMessageDialog(frame, "Time Quantum cannot be 0", "Error", JOptionPane.ERROR_MESSAGE);
+                return false;
+            }
+        }
+        return true;
     }
 }
