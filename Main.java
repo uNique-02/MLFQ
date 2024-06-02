@@ -23,7 +23,6 @@ public class Main {
     static int selectedOption;
     static ArrayList<JComboBox> comboBoxesList = new ArrayList<>(); // List to track JComboBoxes
     static ArrayList<JSpinner> spinnerBoxesList = new ArrayList<>(); // List to track JComboBoxes
-    static Queues[] queue = new Queues[3];
 
     static List<Process> processes;
     static ArrayList<Queues> queues;
@@ -180,9 +179,7 @@ public class Main {
                 spinnerBox[i].addChangeListener(event -> {
                     JSpinner source = (JSpinner) event.getSource();
                     int value = (int) source.getValue();
-                    queue[index] .setAllotedTime(value);
-                    queue[index].setPriority(index);
-
+                    queues.get(index).setTimeQuantum(value);
                 });
                 spinnerBoxesList.add(spinnerBox[i]);
                 

@@ -7,6 +7,8 @@ public class Queues {
     private Scheduler scheduler;
     private int priority;
 
+    private int timeQuantum;
+
     Queue<Process> processes = new LinkedList<>();
 
     public void addProcess(Process process){
@@ -39,5 +41,21 @@ public class Queues {
 
     public void setPriority(int priority) {
         this.priority = priority;
+    }
+
+    public int getTimeQuantum() {
+        return timeQuantum;
+    }
+
+    public void setTimeQuantum(int timeQuantum) {
+        this.timeQuantum = timeQuantum;
+    }
+
+    public Queue<Process> getProcesses() {
+        return processes;
+    }
+
+    public void setProcesses(Queue<Process> processes) {
+        this.processes = processes;
     }
 }

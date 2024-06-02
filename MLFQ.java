@@ -557,7 +557,6 @@ public class MLFQ {
 
     public void ROUND_ROBIN(Queues queue, Queue<Process> currentQueueProcesses) {
         // Set the time quantum for Round Robin
-        int timeQuantum = 2;
     
         // Continue processing until the current queue is not empty
         while (!currentQueueProcesses.isEmpty()) {
@@ -571,7 +570,7 @@ public class MLFQ {
     
             // Process the current process for the time quantum or until it finishes
             int remainingTime = currentProcess.getRemainingTime();
-            int executionTime = Math.min(timeQuantum, remainingTime);
+            int executionTime = Math.min(queue.getTimeQuantum(), remainingTime);
     
             // Execute the process for the given time quantum
             for (int i = 0; i < executionTime; i++) {
