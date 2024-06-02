@@ -118,7 +118,7 @@ public class MLFQ {
             }
         }
 
-    }).start();
+                            }).start();
         printSchedule();
     }
 
@@ -476,6 +476,7 @@ public class MLFQ {
                     queues.get(nextQueueIndex + 1).addProcess(priorityProcess);
                     System.out.println("Process " + priorityProcess.getId() + " moved to Queue " + (nextQueueIndex + 1));
                 } else {
+                    priorityProcess.resetExecutionCount();
                     queue.addProcess(priorityProcess);
                     System.out.println("Process " + priorityProcess.getId() + " re-queued in the same Queue " + queue.getPriority());
                 }
@@ -562,6 +563,7 @@ public class MLFQ {
                     System.out.println("Process " + priorityProcess.getId() + " moved to Queue " + (nextQueueIndex + 1));
                 } else {
                     queue.addProcess(priorityProcess);
+                    priorityProcess.resetExecutionCount();
                     System.out.println("Process " + priorityProcess.getId() + " re-queued in the same Queue " + queue.getPriority());
                 }
                 
