@@ -11,6 +11,7 @@ import javax.swing.JPanel;
 
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.LinkedList;
 
 public class MLFQ {
@@ -20,11 +21,13 @@ public class MLFQ {
     int currentTime = 0;
 
     JPanel boxPanel;
+    private HashMap<Integer, Color> processColors;
 
     public MLFQ(List<Process> processes, List<Queues> queues, JPanel boxPanel) {
         this.boxPanel = boxPanel;
         this.processes = processes;
         this.queues = queues;
+        this.processColors = new HashMap<>();
 
         for(Process process: processes){
             System.out.println("Process ID: " + process.getId() + " Arrival Time: " + process.getArrivalTime() + " Burst Time: " + process.getBurstTime() + " Priority: " + process.getPriority());
@@ -75,25 +78,29 @@ public class MLFQ {
                 Queue<Process> currentQueueProcesses = new LinkedList<>(queue.processes);
 
                 switch (queue.getScheduler()) {
-                    case Scheduler.FCFS:
+                    case FCFS:
                         System.out.println("Scheduler should be FSCS, which is actually: " +queue.getScheduler() + " ");
                         FCFS(queue, currentQueueProcesses);
                         break;
-                    case Scheduler.SRTF:
+                    case SRTF:
                         System.out.println("Scheduler should be SRTF, which is actually: " +queue.getScheduler() + " ");
                         SRTF(queue, currentQueueProcesses);
                         break;
-                    case Scheduler.SJF:
+                    case SJF:
                         System.out.println("Scheduler should be SJF, which is actually: " +queue.getScheduler() + " ");
                         SJF(queue, currentQueueProcesses);
                         break;
-                    case Scheduler.PPRIORITY:
+                    case PPRIORITY:
                         System.out.println("Scheduler should be PPRIORITY,, which is actually: " +queue.getScheduler() + " ");
                         PPRIORITY(queue, currentQueueProcesses);
                         break;
-                    case Scheduler.NPPRIORITY:
+                    case NPPRIORITY:
                         System.out.println("Scheduler should be NPPRIORITY,, which is actually: " +queue.getScheduler() + " ");
                         NPPRIORITY(queue, currentQueueProcesses);
+                        break;
+                    case ROUND_ROBIN:
+                        System.out.println("Scheduler should be NPPRIORITY,, which is actually: " +queue.getScheduler() + " ");
+                        ROUND_ROBIN(queue, currentQueueProcesses);
                         break;
                     default:
                         break;
@@ -106,8 +113,10 @@ public class MLFQ {
     }
 
     public void drawBox(int id) {
-        Random random = new Random();
-        Color color = new Color(random.nextInt(256), random.nextInt(256), random.nextInt(256));
+        Color color = processColors.computeIfAbsent(id, k -> {
+            Random random = new Random();
+            return new Color(random.nextInt(256), random.nextInt(256), random.nextInt(256));
+        });
 
         JPanel box = new JPanel();
         JLabel label = new JLabel("" + (id));
@@ -542,6 +551,68 @@ public class MLFQ {
                     System.out.println("Process " + priorityProcess.getId() + " re-queued in the same Queue " + queue.getPriority());
                 }
                 
+            }
+        }
+    }
+
+    public void ROUND_ROBIN(Queues queue, Queue<Process> currentQueueProcesses) {
+        // Set the time quantum for Round Robin
+        int timeQuantum = 2;
+    
+        // Continue processing until the current queue is not empty
+        while (!currentQueueProcesses.isEmpty()) {
+            // Get the process at the front of the queue
+            Process currentProcess = currentQueueProcesses.poll();
+            
+            // If no process is found, break the loop
+            if (currentProcess == null) {
+                break;
+            }
+    
+            // Process the current process for the time quantum or until it finishes
+            int remainingTime = currentProcess.getRemainingTime();
+            int executionTime = Math.min(timeQuantum, remainingTime);
+    
+            // Execute the process for the given time quantum
+            for (int i = 0; i < executionTime; i++) {
+                // Decrement remaining time for the process
+                currentProcess.decrementRemainingTime();
+                currentTime++;
+    
+                // Add a 1-second delay
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    System.out.println("Thread was interrupted, failed to complete operation");
+                }
+    
+                // Draw the process box
+                drawBox(currentProcess.getId());
+    
+                // Check if any new processes have arrived and need to be added to the queue
+                for (Process process : processes) {
+                    if (process.getArrivalTime() == currentTime) {
+                        queue.addProcess(process);
+                        currentQueueProcesses.add(process);
+                    }
+                }
+    
+                // Exit loop early if process is complete
+                if (currentProcess.getRemainingTime() == 0) {
+                    break;
+                }
+            }
+    
+            // If the process has finished, set its completion, turnaround, and waiting times
+            if (currentProcess.getRemainingTime() == 0) {
+                currentProcess.setCompletionTime(currentTime);
+                currentProcess.setTurnAroundTime(currentProcess.getCompletionTime() - currentProcess.getArrivalTime());
+                currentProcess.setWaitingTime(currentProcess.getTurnAroundTime() - currentProcess.getBurstTime());
+                queue.removeProcess(currentProcess);
+            } else {
+                // If the process hasn't finished, re-add it to the queue
+                currentQueueProcesses.add(currentProcess);
             }
         }
     }
