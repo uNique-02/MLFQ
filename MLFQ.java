@@ -4,10 +4,14 @@ import java.util.Random;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
+import javax.swing.Timer;
 
 import java.util.Arrays;
 import java.util.Comparator;
@@ -40,6 +44,8 @@ public class MLFQ {
     }
 
     public void schedule() {
+
+        new Thread(() -> {
         currentTime = 0;
         System.out.println("Starting MLFQ Scheduling...");
 
@@ -80,7 +86,10 @@ public class MLFQ {
                 switch (queue.getScheduler()) {
                     case FCFS:
                         System.out.println("Scheduler should be FSCS, which is actually: " +queue.getScheduler() + " ");
+                        
+                        
                         FCFS(queue, currentQueueProcesses);
+
                         break;
                     case SRTF:
                         System.out.println("Scheduler should be SRTF, which is actually: " +queue.getScheduler() + " ");
@@ -109,10 +118,12 @@ public class MLFQ {
             }
         }
 
+    }).start();
         printSchedule();
     }
 
     public void drawBox(int id) {
+
         Color color = processColors.computeIfAbsent(id, k -> {
             Random random = new Random();
             return new Color(random.nextInt(256), random.nextInt(256), random.nextInt(256));
@@ -129,6 +140,8 @@ public class MLFQ {
 
         boxPanel.revalidate();
         boxPanel.repaint();
+
+        
     }
 
     private boolean allQueuesEmpty() {

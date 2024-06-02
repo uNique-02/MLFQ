@@ -47,11 +47,11 @@ public class Main {
             queues.get(i).setAllotedTime((int) Math.pow(2, i+2));
             queues.get(i).setScheduler(Scheduler.FCFS);
         }
-        queues.get(0).setScheduler(Scheduler.FCFS);
+        queues.get(0).setScheduler(Scheduler.FCFS);*/
         
         new MLFQ(processes, queues, boxPanel);
 
-        */
+        
     }
 
     public JComboBox createComboBox(String[] algos){
