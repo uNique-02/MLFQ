@@ -296,6 +296,7 @@ public class MLFQ {
                     System.out.println("Process " + shortestProcess.getId() + " moved to Queue " + (nextQueueIndex + 1));
                 } else {
                     queue.addProcess(shortestProcess);
+                    shortestProcess.resetExecutionCount();
                     System.out.println("Process " + shortestProcess.getId() + " re-queued in the same Queue " + queue.getPriority());
                 }
                 
