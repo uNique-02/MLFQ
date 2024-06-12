@@ -49,7 +49,7 @@ public class Main {
         }
         queues.get(0).setScheduler(Scheduler.FCFS);*/
         
-        new MLFQ(processes, queues, boxPanel);
+        //new MLFQ(processes, queues, boxPanel, model);
 
         
     }
@@ -66,7 +66,7 @@ public class Main {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setLayout(new BorderLayout(20, 10));
 
-        String[] columns = {"Process", "Arrival Time", "CPU Burst Time", "Priority"};
+        String[] columns = {"ID", "Arrival Time", "CPU Burst Time", "Priority", "Completion", "Waiting Time", "Turnaround Time"};
         Object[][] data = {};
 
         DefaultTableModel model = new DefaultTableModel(data, columns);
@@ -74,7 +74,7 @@ public class Main {
 
         JPanel panel = new JPanel();
         panel.setLayout(new BorderLayout());
-        panel.setBounds(50, 20, 600, 200);
+        panel.setBounds(50, 20, 700, 200);
 
         JScrollPane scrollPane = new JScrollPane(table);
         scrollPane.setPreferredSize(new Dimension(panel.getWidth(), panel.getHeight()));
@@ -270,7 +270,7 @@ public class Main {
                 boxPanel.repaint();
 
                 if(passedValidator()){
-                    new MLFQ(processes, queues, boxPanel);
+                    new MLFQ(processes, queues, boxPanel, model);
                 }
                 
         /* =========================================================================================== */
@@ -289,7 +289,7 @@ public class Main {
     private static void addRow(DefaultTableModel model) {
         // Prompt the user to enter data for each cell of the new row
         String[] rowData = new String[model.getColumnCount()];
-        for (int i = 0; i < rowData.length; i++) {
+        for (int i = 0; i < rowData.length-3; i++) {
             rowData[i] = JOptionPane.showInputDialog("Enter data for " + model.getColumnName(i));
             System.out.println("Is null? " + rowData[i]);
             while (rowData[i] == null || rowData[i].isEmpty()) {

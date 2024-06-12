@@ -12,6 +12,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
+import javax.swing.table.DefaultTableModel;
 
 import java.util.Arrays;
 import java.util.Comparator;
@@ -23,15 +24,17 @@ public class MLFQ {
     private List<Queues> queues;
     Process currentProcess;
     int currentTime = 0;
+    DefaultTableModel model;
 
     JPanel boxPanel;
     private HashMap<Integer, Color> processColors;
 
-    public MLFQ(List<Process> processes, List<Queues> queues, JPanel boxPanel) {
+    public MLFQ(List<Process> processes, List<Queues> queues, JPanel boxPanel, DefaultTableModel model) {
         this.boxPanel = boxPanel;
         this.processes = processes;
         this.queues = queues;
         this.processColors = new HashMap<>();
+        this.model=model;
 
         for(Process process: processes){
             System.out.println("Process ID: " + process.getId() + " Arrival Time: " + process.getArrivalTime() + " Burst Time: " + process.getBurstTime() + " Priority: " + process.getPriority());
@@ -118,8 +121,10 @@ public class MLFQ {
             }
         }
 
+        // Call printSchedule on the EDT after scheduling is done
+        SwingUtilities.invokeLater(() -> printSchedule());
                             }).start();
-        printSchedule();
+        
     }
 
     public void drawBox(int id) {
@@ -156,9 +161,16 @@ public class MLFQ {
     public void printSchedule() {
         System.out.println("\nFinal Schedule:");
         System.out.println("ID\tArrival\tBurst\tCompletion\tTurnAround\tWaiting");
+        int i=0;
         for (Process process : processes) {
+            model.setValueAt(process.getCompletionTime(), i, 4);
+            model.setValueAt(process.getWaitingTime(), i, 5);
+            model.setValueAt(process.getTurnAroundTime(), i, 6);
             System.out.println(process.getId() + "\t" + process.getArrivalTime() + "\t" + process.getBurstTime() + "\t" + process.getCompletionTime() + "\t\t" + process.getTurnAroundTime() + "\t\t" + process.getWaitingTime());
+            i++;
         }
+        boxPanel.revalidate();
+        boxPanel.repaint();
     }
 
     public void FCFS(Queues queue, Queue<Process> currentQueueProcesses) {
