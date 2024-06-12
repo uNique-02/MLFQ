@@ -151,7 +151,7 @@ public class Main {
                 //queue[i] = new Queues();
 
                 queues.add(new Queues());   /* ----------------- NOT PART OF UI -------------------------> */
-                queues.get(i).setPriority(i+1); /* ----------------- NOT PART OF UI -------------------------> */
+                queues.get(i).setPriority(i); /* ----------------- NOT PART OF UI -------------------------> */
                 queues.get(i).setAllotedTime((int) Math.pow(2, i+2));   /* ----------------- NOT PART OF UI -------------------------> */
                 queues.get(i).setScheduler(Scheduler.FCFS); /* ----------------- NOT PART OF UI -------------------------> */
                     
