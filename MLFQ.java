@@ -43,6 +43,21 @@ public class MLFQ {
      //   for (Process process : processes) {
      //       queues.get(0).addProcess(process);
      //   }
+
+     /*Uncomment this if maam bea does not want a hardcoded value for alloted time */
+
+     /* 
+        int maxBurstTime = Integer.MIN_VALUE;
+        for (Process process : processes) {
+            if (process.getBurstTime() > maxBurstTime) {
+                maxBurstTime = process.getBurstTime();
+            }
+        }
+
+        int alloted = queues.size() > 1 ? (int) Math.pow(2, 0+2) : maxBurstTime+1;
+        queues.get(0).setAllotedTime(alloted); 
+    */
+    
         schedule();
     }
 

@@ -145,14 +145,14 @@ public class Main {
             algoBox = new JComboBox[selectedOption];
             spinnerBox = new JSpinner[selectedOption];
             spinnerBoxLabel = new JLabel[selectedOption];
-
             for (int i = 0; i < selectedOption; i++) {
                 
                 //queue[i] = new Queues();
 
                 queues.add(new Queues());   /* ----------------- NOT PART OF UI -------------------------> */
+                int alloted = queues.size() > 1 ? (int) Math.pow(2, i+2) : 2_147_483_647;
                 queues.get(i).setPriority(i); /* ----------------- NOT PART OF UI -------------------------> */
-                queues.get(i).setAllotedTime((int) Math.pow(2, i+2));   /* ----------------- NOT PART OF UI -------------------------> */
+                queues.get(i).setAllotedTime(alloted);   /* ----------------- NOT PART OF UI -------------------------> */
                 queues.get(i).setScheduler(Scheduler.FCFS); /* ----------------- NOT PART OF UI -------------------------> */
                     
 
